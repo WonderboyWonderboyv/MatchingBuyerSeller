@@ -96,7 +96,7 @@ const calMatchValue = (
     w.distance = 0.3;
   }
   else if (distance_in_miles > 2) {
-    w.distance = 0.375 - distance_in_miles * 0.0375;
+    w.distance = 0.375 - distance_in_miles * 0.0375; // Solving equation y = mx + c for (y = 0, x = 10) and (y = 0.3, x = 2)
   }
 
   //price contribution to match calculation
@@ -110,14 +110,14 @@ const calMatchValue = (
         (price * 0.3) /
         (min_budget - price * 0.75) -
         (0.3 * price * 0.75) /
-        (min_budget - price * 0.75);
+        (min_budget - price * 0.75); // Solving equation y = mx + c for (y = 0, x = price*0.75) and (y = 0.3, x = min_budget)
     }
     else if (price > max_budget) {
       w.price =
         (0.3 * price * 1.25) /
         (price * 1.25 - max_budget) -
         (0.3 * price) /
-        (price * 1.25 - max_budget);
+        (price * 1.25 - max_budget); // Solving equation y = mx + c for (y = 0, x = price*1.75) and (y = 0.3, x = max_budget)
     }
   }
   else if (min_budget || max_budget) {
@@ -130,7 +130,7 @@ const calMatchValue = (
           (price * 0.3) /
           (min_budget - price * 0.75) -
           (0.3 * price * 0.75) /
-          (min_budget - price * 0.75);
+          (min_budget - price * 0.75); // Solving equation y = mx + c for (y = 0, x = price*0.75) and (y = 0.3, x = min_budget)
       }
     }
     else if (max_budget) {
@@ -143,7 +143,7 @@ const calMatchValue = (
           (0.3 * price * 1.25) /
           (price * 1.25 - max_budget) -
           (0.3 * price) /
-          (price * 1.25 - max_budget);
+          (price * 1.25 - max_budget); // Solving equation y = mx + c for (y = 0, x = price*1.75) and (y = 0.3, x = max_budget)
       }
     }
   }
@@ -159,14 +159,14 @@ const calMatchValue = (
         (0.2 * bedrooms) /
         (min_bedrooms - bedrooms - 2) -
         (0.2 * (bedrooms - 2)) /
-        (min_bedrooms - bedrooms - 2);
+        (min_bedrooms - bedrooms - 2); // Solving equation y = mx + c for (y = 0, x = bedrooms-2) and (y = 0.2, x = min_bedrooms)
     }
     else if (bedrooms > max_bedrooms) {
       w.bedrooms =
         (0.2 * (bedrooms + 2)) /
         (bedrooms + 2 - max_bedrooms) -
         (0.2 * bedrooms) /
-        (bedrooms + 2 - max_bedrooms);
+        (bedrooms + 2 - max_bedrooms); // Solving equation y = mx + c for (y = 0, x = bedrooms+2) and (y = 0.2, x = max_bedrooms)
     }
   }
   else if (min_bedrooms || max_bedrooms) {
@@ -178,7 +178,7 @@ const calMatchValue = (
         (0.2 * bedrooms) /
         (min_bedrooms - bedrooms - 2) -
         (0.2 * (bedrooms - 2)) /
-        (min_bedrooms - bedrooms - 2);
+        (min_bedrooms - bedrooms - 2); // Solving equation y = mx + c for (y = 0, x = bedrooms-2) and (y = 0.2, x = min_bedrooms)
     }
     else if (max_bedrooms && bedrooms <= max_bedrooms) {
       w.bedrooms = 0.2;
@@ -188,7 +188,7 @@ const calMatchValue = (
         (0.2 * (bedrooms + 2)) /
         (bedrooms + 2 - max_bedrooms) -
         (0.2 * bedrooms) /
-        (bedrooms + 2 - max_bedrooms);
+        (bedrooms + 2 - max_bedrooms); // Solving equation y = mx + c for (y = 0, x = bedrooms+2) and (y = 0.2, x = max_bedrooms)
     }
   }
 
@@ -203,14 +203,14 @@ const calMatchValue = (
         (0.2 * bathrooms) /
         (min_bathrooms - bathrooms - 2) -
         (0.2 * (bathrooms - 2)) /
-        (min_bathrooms - bathrooms - 2);
+        (min_bathrooms - bathrooms - 2); // Solving equation y = mx + c for (y = 0, x = bathrooms-2) and (y = 0.2, x = min_bathrooms)
     }
     else if (bathrooms > max_bathrooms) {
       w.bathrooms =
         (0.2 * (bathrooms + 2)) /
         (bathrooms + 2 - max_bathrooms) -
         (0.2 * bathrooms) /
-        (bathrooms + 2 - max_bathrooms);
+        (bathrooms + 2 - max_bathrooms); // Solving equation y = mx + c for (y = 0, x = bathrooms+2) and (y = 0.2, x = max_bathrooms)
     }
   }
   else if (min_bathrooms || max_bathrooms) {
@@ -222,7 +222,7 @@ const calMatchValue = (
         (0.2 * bathrooms) /
         (min_bathrooms - bathrooms - 2) -
         (0.2 * (bathrooms - 2)) /
-        (min_bathrooms - bathrooms - 2);
+        (min_bathrooms - bathrooms - 2); // Solving equation y = mx + c for (y = 0, x = bathrooms-2) and (y = 0.2, x = min_bathrooms)
     }
     else if (max_bathrooms && bathrooms <= max_bathrooms) {
       w.bathrooms = 0.2;
@@ -232,7 +232,7 @@ const calMatchValue = (
         (0.2 * (bathrooms + 2)) /
         (bathrooms + 2 - max_bathrooms) -
         (0.2 * bathrooms) /
-        (bathrooms + 2 - max_bathrooms);
+        (bathrooms + 2 - max_bathrooms); // Solving equation y = mx + c for (y = 0, x = bathrooms+2) and (y = 0.2, x = max_bathrooms)
     }
   }
 
@@ -291,6 +291,7 @@ if (command == "sell") {
         HAVING distance_in_miles < 10;`;
     connection.query(sql_search, (err, results, fields) => {
       if (err) throw err;
+      var found = false;
       results.forEach(result => {
         const match = calMatchValue(
           result.distance_in_miles,
@@ -305,12 +306,16 @@ if (command == "sell") {
           result.max_bathrooms
         );
         if (match >= 0.4) {
+          found = true;
           console.log(
             `[Requirement Id]: #${result.id} with   ${(match *
               100).toFixed(2)}% match.`
           );
         }
       });
+      if (!results || !found) {
+        console.log("No valid matches to display.");
+      }
     });
   });
 }
@@ -378,6 +383,7 @@ if (command == "buy") {
     sql_search += `AS p HAVING distance_in_miles < 10;`;
     connection.query(sql_search, (err, results, fields) => {
       if (err) throw err;
+      var found = false;
       results.forEach(result => {
         const match = calMatchValue(
           result.distance_in_miles,
@@ -392,14 +398,15 @@ if (command == "buy") {
           requirement.max_bathrooms
         );
         if (match >= 0.4) {
+          found = true;
           console.log(
             `[Property Id]: #${result.id} with    ${(match *
               100).toFixed(2)}% match.`
           );
         }
       });
-      if (!results) {
-        console.log("No matches to display.");
+      if (!results || !found) {
+        console.log("No valid matches to display.");
       }
     });
   });
