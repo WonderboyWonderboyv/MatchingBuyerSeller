@@ -24,10 +24,11 @@ and requirement(id, latitude, longitude, min_budget, max_budget, min_bedrooms, m
 4. Install npm packages required:
 
 ```
-npm i
+npm i 
 ```
 
 5 . 2 commands: buy and sell
+
   Example: To sell a property and find valid buyers:
 
 ```
