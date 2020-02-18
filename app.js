@@ -13,6 +13,9 @@ connection.connect(err => {
   console.log("Connected!");
 });
 
+//  It's assumed that either a min or a max will be surely given for
+//  value for min/max budget, min/max bedrooms and min/max bathroom
+
 const argv = yargs
   .command("sell", "Add the details of the property", {
     latitude: {
@@ -29,8 +32,7 @@ const argv = yargs
     },
     bedrooms: {
       describe: "number of bedrooms of the property",
-      demand: true,
-      alias: "bd"
+      demand: true
     },
     bathrooms: {
       describe: "number of bathrooms of the property",
@@ -69,6 +71,179 @@ const argv = yargs
   .alias("h", "help").argv;
 var command = process.argv[2];
 
+//match value calclation function
+const calMatchValue = (
+  distance_in_miles,
+  price,
+  min_budget,
+  max_budget,
+  bedrooms,
+  min_bedrooms,
+  max_bedrooms,
+  bathrooms,
+  min_bathrooms,
+  max_bathrooms
+) => {
+  var w = {
+    distance: 0,
+    price: 0,
+    bedrooms: 0,
+    bathrooms: 0
+  };
+
+  //distance contribution to match calculation
+  if (distance_in_miles <= 2) {
+    w.distance = 0.3;
+  }
+  else if (distance_in_miles > 2) {
+    w.distance = 0.375 - distance_in_miles * 0.0375;
+  }
+
+  //price contribution to match calculation
+  if (min_budget && max_budget) {
+    if (min_budget <= price &&
+      price <= max_budget) {
+      w.price = 0.3;
+    }
+    else if (min_budget > price) {
+      w.price =
+        (price * 0.3) /
+        (min_budget - price * 0.75) -
+        (0.3 * price * 0.75) /
+        (min_budget - price * 0.75);
+    }
+    else if (price > max_budget) {
+      w.price =
+        (0.3 * price * 1.25) /
+        (price * 1.25 - max_budget) -
+        (0.3 * price) /
+        (price * 1.25 - max_budget);
+    }
+  }
+  else if (min_budget || max_budget) {
+    if (min_budget) {
+      if (min_budget <= price || price * 0.9 <= min_budget) {
+        w.price = 0.3;
+      }
+      else {
+        w.price =
+          (price * 0.3) /
+          (min_budget - price * 0.75) -
+          (0.3 * price * 0.75) /
+          (min_budget - price * 0.75);
+      }
+    }
+    else if (max_budget) {
+      if (price <= max_budget || price *
+        1.1 >= max_budget) {
+        w.price = 0.3
+      }
+      else {
+        w.price =
+          (0.3 * price * 1.25) /
+          (price * 1.25 - max_budget) -
+          (0.3 * price) /
+          (price * 1.25 - max_budget);
+      }
+    }
+  }
+
+  //bedrooms contribution to match calculation
+  if (min_bedrooms && max_bedrooms) {
+    if (min_bedrooms <= bedrooms &&
+      bedrooms <= max_bedrooms) {
+      w.bedrooms = 0.2;
+    }
+    else if (min_bedrooms > bedrooms) {
+      w.bedrooms =
+        (0.2 * bedrooms) /
+        (min_bedrooms - bedrooms - 2) -
+        (0.2 * (bedrooms - 2)) /
+        (min_bedrooms - bedrooms - 2);
+    }
+    else if (bedrooms > max_bedrooms) {
+      w.bedrooms =
+        (0.2 * (bedrooms + 2)) /
+        (bedrooms + 2 - max_bedrooms) -
+        (0.2 * bedrooms) /
+        (bedrooms + 2 - max_bedrooms);
+    }
+  }
+  else if (min_bedrooms || max_bedrooms) {
+    if (min_bedrooms && min_bedrooms <= bedrooms) {
+      w.bedrooms = 0.2;
+    }
+    else if (min_bedrooms && min_bedrooms > bedrooms) {
+      w.bedrooms =
+        (0.2 * bedrooms) /
+        (min_bedrooms - bedrooms - 2) -
+        (0.2 * (bedrooms - 2)) /
+        (min_bedrooms - bedrooms - 2);
+    }
+    else if (max_bedrooms && bedrooms <= max_bedrooms) {
+      w.bedrooms = 0.2;
+    }
+    else if (max_bedrooms && bedrooms > max_bedrooms) {
+      w.bedrooms =
+        (0.2 * (bedrooms + 2)) /
+        (bedrooms + 2 - max_bedrooms) -
+        (0.2 * bedrooms) /
+        (bedrooms + 2 - max_bedrooms);
+    }
+  }
+
+  //bathrooms contribution to match calculation
+  if (min_bathrooms && max_bathrooms) {
+    if (min_bathrooms <= bathrooms &&
+      bathrooms <= max_bathrooms) {
+      w.bathrooms = 0.2;
+    }
+    else if (min_bathrooms > bathrooms) {
+      w.bathrooms =
+        (0.2 * bathrooms) /
+        (min_bathrooms - bathrooms - 2) -
+        (0.2 * (bathrooms - 2)) /
+        (min_bathrooms - bathrooms - 2);
+    }
+    else if (bathrooms > max_bathrooms) {
+      w.bathrooms =
+        (0.2 * (bathrooms + 2)) /
+        (bathrooms + 2 - max_bathrooms) -
+        (0.2 * bathrooms) /
+        (bathrooms + 2 - max_bathrooms);
+    }
+  }
+  else if (min_bathrooms || max_bathrooms) {
+    if (min_bathrooms && min_bathrooms <= bathrooms) {
+      w.bathrooms = 0.2;
+    }
+    else if (min_bathrooms && min_bathrooms > bathrooms) {
+      w.bathrooms =
+        (0.2 * bathrooms) /
+        (min_bathrooms - bathrooms - 2) -
+        (0.2 * (bathrooms - 2)) /
+        (min_bathrooms - bathrooms - 2);
+    }
+    else if (max_bathrooms && bathrooms <= max_bathrooms) {
+      w.bathrooms = 0.2;
+    }
+    else if (max_bathrooms && bathrooms > max_bathrooms) {
+      w.bathrooms =
+        (0.2 * (bathrooms + 2)) /
+        (bathrooms + 2 - max_bathrooms) -
+        (0.2 * bathrooms) /
+        (bathrooms + 2 - max_bathrooms);
+    }
+  }
+
+  const match = w.distance + w.price + w.bedrooms + w.bathrooms;
+  return match;
+}
+
+//  when a seller wants to sell a property,
+//  he will be matched to the buyers whoes 
+//  requirements matches with his property attributes.
+
 if (command == "sell") {
   const property = {
     latitude: argv.latitude,
@@ -88,110 +263,51 @@ if (command == "sell") {
       })) + SIN(RADIANS(s.latitude)) * SIN(RADIANS(${
       property.latitude
       })))) AS distance_in_miles,
-            s.id as search_id,
-            s.min_budget as search_min_budget,
-            s.max_budget as search_max_budget,
-            s.min_bedrooms as search_min_bedrooms,
-            s.max_bedrooms as search_max_bedrooms,
-            s.min_bathrooms as search_min_bathrooms,
-            s.max_bathrooms as search_max_bathrooms
+            s.id as id,
+            s.min_budget as min_budget,
+            s.max_budget as max_budget,
+            s.min_bedrooms as min_bedrooms,
+            s.max_bedrooms as max_bedrooms,
+            s.min_bathrooms as min_bathrooms,
+            s.max_bathrooms as max_bathrooms
         FROM
             (SELECT 
                 *
             FROM
                 requirement
             WHERE
-                ${property.price * 0.75} <= min_budget AND ${property.price *
-      1.25} >= max_budget
-                    AND ${property.bedrooms -
-      2} <= min_bedrooms AND ${property.bedrooms +
-      2} >= max_bedrooms
-                    AND ${property.bathrooms -
-      2} <= min_bathrooms AND ${property.bathrooms +
-      2} >= max_bathrooms) AS s
+                ((min_budget IS NOT NULL AND ${property.price * 0.75} <= min_budget 
+                  AND max_budget IS NOT NULL AND ${property.price * 1.25} >= max_budget)
+                  OR (min_budget is NULL AND ${property.price * 1.25} >= max_budget)
+                  OR (max_budget is NULL AND ${property.price * 0.75} <= min_budget))
+                AND ((min_bedrooms IS NOT NULL AND ${property.bedrooms - 2} <= min_bedrooms 
+                  AND max_bedrooms IS NOT NULL AND ${property.bedrooms + 2} >= max_bedrooms) 
+                  OR (min_bedrooms is NULL AND ${property.bedrooms + 2} >= max_bedrooms) 
+                  OR (max_bedrooms is NULL AND ${property.bedrooms - 2} <= min_bedrooms))
+                AND ((min_bathrooms IS NOT NULL AND ${property.bathrooms - 2} <= min_bathrooms 
+                  AND max_bathrooms IS NOT NULL AND ${property.bathrooms + 2} >= max_bathrooms) 
+                  OR (min_bathrooms is NULL AND ${property.bathrooms + 2} >= max_bathrooms) 
+                  OR (max_bathrooms is NULL AND ${property.bathrooms - 2} <= min_bathrooms))) AS s
         HAVING distance_in_miles < 10;`;
     connection.query(sql_search, (err, results, fields) => {
       if (err) throw err;
       results.forEach(result => {
-        var w = {
-          distance: null,
-          price: null,
-          bedrooms: null,
-          bathrooms: null
-        };
-
-        if (result.distance_in_miles <= 2) {
-          w.distance = 0.3;
-        }
-        if (result.distance_in_miles > 2) {
-          w.distance = 0.375 - result.distance_in_miles * 0.0375;
-        }
-        if (
-          result.min_budget <= property.price &&
-          property.price <= result.max_budget
-        ) {
-          w.price = 0.3;
-        }
-        if (result.min_budget >= property.price) {
-          w.price =
-            (property.price * 0.3) /
-            (result.min_budget - property.price * 0.75) -
-            (0.3 * property.price * 0.75) /
-            (result.min_budget - property.price * 0.75);
-        }
-        if (property.price >= result.max_budget) {
-          w.price =
-            (0.3 * property.price * 1.25) /
-            (property.price * 1.25 - result.max_budget) -
-            (0.3 * property.price) /
-            (property.price * 1.25 - result.max_budget);
-        }
-        if (
-          result.min_bedrooms <= property.bedrooms &&
-          property.bedrooms <= result.max_bedrooms
-        ) {
-          w.bedrooms = 0.2;
-        }
-        if (result.min_bedrooms >= property.bedrooms) {
-          w.bedrooms =
-            (0.2 * property.bedrooms) /
-            (result.min_bedrooms - property.bedrooms - 2) -
-            (0.2 * (property.bedrooms - 2)) /
-            (result.min_bedrooms - property.bedrooms - 2);
-        }
-        if (property.bedrooms >= result.max_bedrooms) {
-          w.bedrooms =
-            (0.2 * (property.bedrooms + 2)) /
-            (property.bedrooms + 2 - result.max_bedrooms) -
-            (0.2 * property.bedrooms) /
-            (property.bedrooms + 2 - result.max_bedrooms);
-        }
-        if (
-          result.min_bathrooms <= property.bathrooms &&
-          property.bathrooms <= result.max_bathrooms
-        ) {
-          w.bathrooms = 0.2;
-        }
-        if (result.min_bathrooms >= property.bathrooms) {
-          w.bathrooms =
-            (0.2 * property.bathrooms) /
-            (result.min_bathrooms - property.bathrooms - 2) -
-            (0.2 * (property.bathrooms - 2)) /
-            (result.min_bathrooms - property.bathrooms - 2);
-        }
-        if (property.bathrooms >= result.max_bathrooms) {
-          w.bathrooms =
-            (0.2 * (property.bathrooms + 2)) /
-            (property.bathrooms + 2 - result.max_bathrooms) -
-            (0.2 * property.bathrooms) /
-            (property.bathrooms + 2 - result.max_bathrooms);
-        }
-
-        const match = w.distance + w.price + w.bedrooms + w.bathrooms;
+        const match = calMatchValue(
+          result.distance_in_miles,
+          property.price,
+          result.min_budget,
+          result.max_budget,
+          property.bedrooms,
+          result.min_bedrooms,
+          result.max_bedrooms,
+          property.bathrooms,
+          result.min_bathrooms,
+          result.max_bathrooms
+        );
         if (match >= 0.4) {
           console.log(
-            `[Requirement Id]: #${result.search_id} with ---${match *
-            100}% match---.`
+            `[Requirement Id]: #${result.id} with   ${(match *
+              100).toFixed(2)}% match.`
           );
         }
       });
@@ -199,8 +315,12 @@ if (command == "sell") {
   });
 }
 
+//  when a buyer wants to buy a property,
+//  he will be matched to the sellers whoes 
+//  properties matches with his search requirement.
+
 if (command == "buy") {
-  const search_requirement = {
+  const requirement = {
     latitude: argv.latitude,
     longitude: argv.longitude,
     min_budget: argv.min_budget,
@@ -211,109 +331,76 @@ if (command == "buy") {
     max_bathrooms: argv.max_bathrooms
   };
   const sql = "INSERT into dev.requirement SET ?;";
-  connection.query(sql, search_requirement, (err, rows, fields) => {
+  connection.query(sql, requirement, (err, rows, fields) => {
     if (err) throw err;
-    const sql_search = `SELECT 
-            69.04115 * DEGREES(ACOS(COS(RADIANS(p.latitude)) * COS(RADIANS(${search_requirement.latitude})) * COS(RADIANS(p.longitude) - RADIANS(${search_requirement.longitude})) + SIN(RADIANS(p.latitude)) * SIN(RADIANS(${search_requirement.latitude})))) AS distance_in_miles,
-            p.id as property_id,
-            p.price as property_price,
-            p.bedrooms as property_bedrooms,
-            p.bathrooms as property_bathrooms
+    var sql_search = `SELECT 
+            69.04115 * DEGREES(ACOS(COS(RADIANS(p.latitude)) * COS(RADIANS(${requirement.latitude})) * COS(RADIANS(p.longitude) - RADIANS(${requirement.longitude})) + SIN(RADIANS(p.latitude)) * SIN(RADIANS(${requirement.latitude})))) AS distance_in_miles,
+            p.id as id,
+            p.price as price,
+            p.bedrooms as bedrooms,
+            p.bathrooms as bathrooms
         FROM
             (SELECT 
                 *
             FROM
                 property
-            WHERE
-                price*0.75 <= ${search_requirement.min_budget} AND price*1.25 >= ${search_requirement.max_budget}
-                    AND bedrooms-2 <= ${search_requirement.min_bedrooms} AND bedrooms+2 >= ${search_requirement.max_bedrooms}
-                    AND bathrooms-2 <= ${search_requirement.min_bathrooms} AND bathrooms+2 >=${search_requirement.max_bathrooms}) AS p
-        HAVING distance_in_miles < 10;`;
+            WHERE `;
+    if (requirement.min_budget && requirement.max_budget) {
+      sql_search += `price*0.75 <= ${requirement.min_budget} AND price*1.25 >= ${requirement.max_budget} `;
+    }
+    else if (requirement.min_budget) {
+      sql_search += `price*0.75 <= ${requirement.min_budget} `;
+    }
+    else if (requirement.max_budget) {
+      sql_search += `price*1.25 >= ${requirement.max_budget} `;
+    }
+
+    if (requirement.min_bedrooms && requirement.max_bedrooms) {
+      sql_search += `AND bedrooms-2 <= ${requirement.min_bedrooms} AND bedrooms+2 >= ${requirement.max_bedrooms} `;
+    }
+    else if (requirement.min_bedrooms) {
+      sql_search += `AND bedrooms-2 <= ${requirement.min_bedrooms} `;
+    }
+    else if (requirement.max_bedrooms) {
+      sql_search += `AND bedrooms+2 >= ${requirement.max_bedrooms} `;
+    }
+
+    if (requirement.min_bathrooms && requirement.max_bathrooms) {
+      sql_search += `AND bathrooms-2 <= ${requirement.min_bathrooms} AND bathrooms+2 >= ${requirement.max_bathrooms}) `;
+    }
+    else if (requirement.min_bathrooms) {
+      sql_search += `AND bathrooms-2 <= ${requirement.min_bathrooms}) `;
+    }
+    else if (requirement.max_bedrooms) {
+      sql_search += `AND bathrooms+2 >= ${requirement.max_bathrooms}) `;
+    }
+
+    sql_search += `AS p HAVING distance_in_miles < 10;`;
     connection.query(sql_search, (err, results, fields) => {
       if (err) throw err;
       results.forEach(result => {
-        var w = {
-          distance: null,
-          price: null,
-          bedrooms: null,
-          bathrooms: null
-        };
-
-        if (result.distance_in_miles <= 2) {
-          w.distance = 0.3;
-        }
-        if (result.distance_in_miles > 2) {
-          w.distance = 0.375 - result.distance_in_miles * 0.0375;
-        }
-        if (
-          search_requirement.min_budget <= result.price &&
-          result.price <= search_requirement.max_budget
-        ) {
-          w.price = 0.3;
-        }
-        if (search_requirement.min_budget >= result.price) {
-          w.price =
-            (result.price * 0.3) /
-            (search_requirement.min_budget - result.price * 0.75) -
-            (0.3 * result.price * 0.75) /
-            (search_requirement.min_budget - result.price * 0.75);
-        }
-        if (result.price >= search_requirement.max_budget) {
-          w.price =
-            (0.3 * result.price * 1.25) /
-            (result.price * 1.25 - search_requirement.max_budget) -
-            (0.3 * result.price) /
-            (result.price * 1.25 - search_requirement.max_budget);
-        }
-        if (
-          search_requirement.min_bedrooms <= result.bedrooms &&
-          result.bedrooms <= search_requirement.max_bedrooms
-        ) {
-          w.bedrooms = 0.2;
-        }
-        if (search_requirement.min_bedrooms >= result.bedrooms) {
-          w.bedrooms =
-            (0.2 * result.bedrooms) /
-            (search_requirement.min_bedrooms - result.bedrooms - 2) -
-            (0.2 * (result.bedrooms - 2)) /
-            (search_requirement.min_bedrooms - result.bedrooms - 2);
-        }
-        if (result.bedrooms >= search_requirement.max_bedrooms) {
-          w.bedrooms =
-            (0.2 * (result.bedrooms + 2)) /
-            (result.bedrooms + 2 - search_requirement.max_bedrooms) -
-            (0.2 * result.bedrooms) /
-            (result.bedrooms + 2 - search_requirement.max_bedrooms);
-        }
-        if (
-          search_requirement.min_bathrooms <= result.bathrooms &&
-          result.bathrooms <= search_requirement.max_bathrooms
-        ) {
-          w.bathrooms = 0.2;
-        }
-        if (search_requirement.min_bathrooms >= result.bathrooms) {
-          w.bathrooms =
-            (0.2 * result.bathrooms) /
-            (search_requirement.min_bathrooms - result.bathrooms - 2) -
-            (0.2 * (result.bathrooms - 2)) /
-            (search_requirement.min_bathrooms - result.bathrooms - 2);
-        }
-        if (result.bathrooms >= search_requirement.max_bathrooms) {
-          w.bathrooms =
-            (0.2 * (result.bathrooms + 2)) /
-            (result.bathrooms + 2 - search_requirement.max_bathrooms) -
-            (0.2 * result.bathrooms) /
-            (result.bathrooms + 2 - search_requirement.max_bathrooms);
-        }
-
-        const match = w.distance + w.price + w.bedrooms + w.bathrooms;
+        const match = calMatchValue(
+          result.distance_in_miles,
+          result.price,
+          requirement.min_budget,
+          requirement.max_budget,
+          result.bedrooms,
+          requirement.min_bedrooms,
+          requirement.max_bedrooms,
+          result.bathrooms,
+          requirement.min_bathrooms,
+          requirement.max_bathrooms
+        );
         if (match >= 0.4) {
           console.log(
-            `[Property Id]: #${result.property_id} with ---${match *
-            100}% match---.`
+            `[Property Id]: #${result.id} with    ${(match *
+              100).toFixed(2)}% match.`
           );
         }
       });
+      if (!results) {
+        console.log("No matches to display.");
+      }
     });
   });
 }
