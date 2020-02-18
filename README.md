@@ -29,12 +29,12 @@ npm i
 
 5 . 2 commands: buy and sell
 
-  Example: To sell a property and find valid buyers:
+  Example: To add a requirement and find valid sellers:
 
 ```
 node app.js buy --latitude "18.568860" --longitude "73.919550" --min_budget "90" --max_budget "100" --min_bedrooms "1" --max_bedrooms "3" --min_bathrooms "1" --max_bathrooms "3"
 ``` 
-  Example: To add a requirement and find valid sellers:
+  Example: To sell a property and find valid buyers:
   
 ```
 node app.js sell --latitude "18.52043" --longitude "73.856743" --price "100" --bedrooms "2" --bathrooms "2"
